@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Visual - Plan Details Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .panel {
+            max-width: 420px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header .status {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .goal-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #bae6fd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .goal-card::before {
+            content: '🎯';
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            font-size: 80px;
+            opacity: 0.1;
+        }
+
+        .goal-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #0369a1;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .goal-text {
+            font-size: 14px;
+            color: #0c4a6e;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+            margin: 24px 0;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #495057;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .step-number {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 8px;
+            padding-right: 40px;
+        }
+
+        .step-description {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .field-group {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .field-group-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .field-tag {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .field-tag:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .field-tag .icon {
+            font-size: 14px;
+        }
+
+        .field-tag .name {
+            font-weight: 500;
+            color: #212529;
+        }
+
+        .field-tag .badge {
+            background: #ffc107;
+            color: #000;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .field-tag .validation {
+            background: #17a2b8;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .highlight-box {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .highlight-box .icon {
+            font-size: 16px;
+            margin-right: 6px;
+        }
+
+        .highlight-box .text {
+            font-size: 12px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .highlight-box strong {
+            font-weight: 600;
+            color: #533800;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .info-box .icon {
+            font-size: 16px;
+            margin-right: 6px;
+        }
+
+        .info-box .text {
+            font-size: 12px;
+            color: #0d47a1;
+            line-height: 1.5;
+        }
+
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .success-box .icon {
+            font-size: 16px;
+            margin-right: 6px;
+        }
+
+        .success-box .text {
+            font-size: 12px;
+            color: #1b5e20;
+            line-height: 1.5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <!-- Header -->
+        <div class="header">
+            <h2>Subscription sign-up form with personal details</h2>
+            <div class="status">
+                <span>📋</span>
+                <span>Plan · Ready to begin</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Goal Card -->
+            <div class="goal-card">
+                <div class="goal-label">🎯 Goal</div>
+                <div class="goal-text">
+                    Add a subscription sign-up form with personal details so visitors can subscribe and submit their personal and subscription preferences.
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-value">11</div>
+                    <div class="stat-label">Fields</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value">5-7</div>
+                    <div class="stat-label">Minutes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">Required</div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Implementation Steps -->
+            <div class="section-title">
+                <span>📋</span>
+                <span>Implementation Steps</span>
+            </div>
+
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-title">Generate the form using default template</div>
+                <div class="step-description">
+                    Use the "Contact" form theme and default template as the starting point
+                </div>
+                <div class="success-box">
+                    <span class="icon">⚡</span>
+                    <span class="text"><strong>Quick Start:</strong> Template includes 60% of required fields</span>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-title">Add Personal Information section</div>
+                <div class="step-description">
+                    Add section with 8 fields for user's personal details
+                </div>
+
+                <div class="field-group">
+                    <div class="field-group-title">
+                        <span>📝</span>
+                        <span>Personal Information Fields</span>
+                    </div>
+                    <div class="field-tags">
+                        <div class="field-tag">
+                            <span class="icon">👤</span>
+                            <span class="name">First name</span>
+                            <span class="badge">REQ</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">👤</span>
+                            <span class="name">Last name</span>
+                            <span class="badge">REQ</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">📧</span>
+                            <span class="name">Email</span>
+                            <span class="badge">REQ</span>
+                            <span class="validation">FORMAT</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">📞</span>
+                            <span class="name">Phone</span>
+                            <span class="badge">REQ</span>
+                            <span class="validation">FORMAT</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">🏠</span>
+                            <span class="name">Address</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">📮</span>
+                            <span class="name">Zip/Postal</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">🏙️</span>
+                            <span class="name">City</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">🌍</span>
+                            <span class="name">Country</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <span class="icon">💡</span>
+                    <span class="text"><strong>Pro Tip:</strong> Use auto-complete for country field to improve user experience</span>
+                </div>
+
+                <div class="info-box">
+                    <span class="icon">📌</span>
+                    <span class="text">Make "Date of birth" field <strong>not required</strong>, per requirements in the regions we operate</span>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-title">Add Subscription Details section</div>
+                <div class="step-description">
+                    Configure subscription preferences with validation
+                </div>
+
+                <div class="field-group">
+                    <div class="field-group-title">
+                        <span>☕</span>
+                        <span>Subscription Preferences</span>
+                    </div>
+                    <div class="field-tags">
+                        <div class="field-tag">
+                            <span class="icon">📅</span>
+                            <span class="name">Start date</span>
+                            <span class="badge">REQ</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">☕</span>
+                            <span class="name">Coffee type</span>
+                            <span class="badge">REQ</span>
+                        </div>
+                        <div class="field-tag">
+                            <span class="icon">🔄</span>
+                            <span class="name">Frequency</span>
+                            <span class="badge">REQ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <span class="icon">🎯</span>
+                    <span class="text"><strong>Critical:</strong> Set up proper email format validation to ensure deliverability</span>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-title">Add "I agree to MyBarista terms" consent</div>
+                <div class="step-description">
+                    Add checkbox at bottom with links to terms and privacy policy, make it required
+                </div>
+
+                <div class="info-box">
+                    <span class="icon">🔒</span>
+                    <span class="text"><strong>GDPR Compliance:</strong> Explicit consent checkbox is required for EU users</span>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <div class="step-title">Add a "Submit" button</div>
+                <div class="step-description">
+                    Configure submission with confirmation message
+                </div>
+
+                <div class="success-box">
+                    <span class="icon">✉️</span>
+                    <span class="text"><strong>Confirmation:</strong> "Thank you! Your confirmation message will be sent after submission."</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Details Panel - Prototype Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        .prototypes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .prototype-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .prototype-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+        }
+
+        .card-image {
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .card-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .card-features li {
+            font-size: 13px;
+            color: #495057;
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .card-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        .card-button {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .card-button:hover {
+            transform: scale(1.02);
+        }
+
+        .comparison {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .comparison h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 13px;
+        }
+
+        .comparison-table td {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .check-yes {
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        .check-no {
+            color: #dc3545;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Plan Details Panel Prototypes</h1>
+            <p>Three different approaches to improve form author experience</p>
+        </div>
+
+        <div class="prototypes-grid">
+            <!-- Maximum Impact -->
+            <a href="maximum-impact/index.html" class="prototype-card">
+                <div class="card-image">📊</div>
+                <div class="card-content">
+                    <div class="card-title">
+                        Maximum Impact
+                        <span class="card-badge">Recommended</span>
+                    </div>
+                    <div class="card-description">
+                        The most comprehensive approach combining metrics, visual structure map, progressive checklist, and AI insights.
+                    </div>
+                    <ul class="card-features">
+                        <li>Live metrics dashboard</li>
+                        <li>Expandable form structure tree</li>
+                        <li>Rich progressive checklist</li>
+                        <li>Contextual tips & warnings</li>
+                        <li>AI-powered suggestions</li>
+                    </ul>
+                    <div class="card-button">View Prototype →</div>
+                </div>
+            </a>
+
+            <!-- Hybrid Approach -->
+            <a href="hybrid-approach/index.html" class="prototype-card">
+                <div class="card-image">👁️</div>
+                <div class="card-content">
+                    <div class="card-title">
+                        Hybrid Approach
+                    </div>
+                    <div class="card-description">
+                        Split panel with tabs: visual form preview on one tab, condensed plan details on another.
+                    </div>
+                    <ul class="card-features">
+                        <li>Tab-based interface</li>
+                        <li>Full visual form preview</li>
+                        <li>Condensed plan details</li>
+                        <li>Progress tracking</li>
+                        <li>Best for visual learners</li>
+                    </ul>
+                    <div class="card-button">View Prototype →</div>
+                </div>
+            </a>
+
+            <!-- Enhanced Visual -->
+            <a href="enhanced-visual/index.html" class="prototype-card">
+                <div class="card-image">🎨</div>
+                <div class="card-content">
+                    <div class="card-title">
+                        Enhanced Visual
+                    </div>
+                    <div class="card-description">
+                        Keeps the text-based approach but with dramatically improved visual hierarchy and scanability.
+                    </div>
+                    <ul class="card-features">
+                        <li>Rich visual cards</li>
+                        <li>Field tags with icons</li>
+                        <li>Color-coded highlights</li>
+                        <li>Quick stats overview</li>
+                        <li>Improved typography</li>
+                    </ul>
+                    <div class="card-button">View Prototype →</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="comparison">
+            <h2>📋 Feature Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Maximum Impact</th>
+                        <th>Hybrid Approach</th>
+                        <th>Enhanced Visual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Metrics Dashboard</td>
+                        <td class="check-yes">✓ Full</td>
+                        <td class="check-no">✗</td>
+                        <td class="check-yes">✓ Compact</td>
+                    </tr>
+                    <tr>
+                        <td>Visual Form Preview</td>
+                        <td class="check-no">✗</td>
+                        <td class="check-yes">✓ Full</td>
+                        <td class="check-no">✗</td>
+                    </tr>
+                    <tr>
+                        <td>Form Structure Tree</td>
+                        <td class="check-yes">✓ Expandable</td>
+                        <td class="check-no">✗</td>
+                        <td class="check-no">✗</td>
+                    </tr>
+                    <tr>
+                        <td>Progressive Checklist</td>
+                        <td class="check-yes">✓ Rich</td>
+                        <td class="check-yes">✓ Basic</td>
+                        <td class="check-yes">✓ Rich</td>
+                    </tr>
+                    <tr>
+                        <td>Contextual Tips</td>
+                        <td class="check-yes">✓ Inline</td>
+                        <td class="check-no">✗</td>
+                        <td class="check-yes">✓ Inline</td>
+                    </tr>
+                    <tr>
+                        <td>AI Suggestions</td>
+                        <td class="check-yes">✓</td>
+                        <td class="check-no">✗</td>
+                        <td class="check-no">✗</td>
+                    </tr>
+                    <tr>
+                        <td>Field Tags</td>
+                        <td class="check-yes">✓</td>
+                        <td class="check-no">✗</td>
+                        <td class="check-yes">✓ Rich</td>
+                    </tr>
+                    <tr>
+                        <td>Complexity</td>
+                        <td>High</td>
+                        <td>Medium</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>Development Effort</td>
+                        <td>High</td>
+                        <td>Medium</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>Best For</td>
+                        <td>Power users</td>
+                        <td>Visual designers</td>
+                        <td>Quick wins</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maximum Impact - Plan Details Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .panel {
+            max-width: 420px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header .status {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .metric {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .metric-sub {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .section {
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .structure-map {
+            padding: 0;
+        }
+
+        .structure-item {
+            padding: 12px 16px;
+            border-left: 3px solid #dee2e6;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .structure-item:hover {
+            background: #e9ecef;
+            border-left-color: #667eea;
+        }
+
+        .structure-item.expanded {
+            background: white;
+            border-left-color: #667eea;
+        }
+
+        .structure-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 14px;
+            color: #212529;
+        }
+
+        .structure-meta {
+            font-size: 12px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .field-list {
+            margin-top: 12px;
+            padding-left: 20px;
+            display: none;
+        }
+
+        .structure-item.expanded .field-list {
+            display: block;
+        }
+
+        .field-item {
+            padding: 8px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field-icon {
+            font-size: 16px;
+        }
+
+        .field-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .field-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: #ffc107;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .checklist-item {
+            padding: 16px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .checklist-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .checklist-item.completed {
+            background: #f0f9ff;
+            border-color: #bfdbfe;
+        }
+
+        .checklist-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .checklist-item.completed .check-icon {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+
+        .checklist-content {
+            flex: 1;
+        }
+
+        .checklist-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .checklist-desc {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        .quick-action {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .quick-action-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 2px;
+        }
+
+        .tip {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #fff9e6;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #856404;
+        }
+
+        .tip-icon {
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .insights {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .insight-item {
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .insight-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .expand-icon {
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <!-- Header -->
+        <div class="header">
+            <h2>Subscription sign-up form with personal details</h2>
+            <div class="status">
+                <span>📋</span>
+                <span>Plan · Ready to begin</span>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-label">Completion Time</div>
+                <div class="metric-value">5-7 min</div>
+                <div class="metric-sub">User estimate</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Total Fields</div>
+                <div class="metric-value">11</div>
+                <div class="metric-sub">7 required</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Sections</div>
+                <div class="metric-value">3</div>
+                <div class="metric-sub">Multi-step</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Validation</div>
+                <div class="metric-value">4</div>
+                <div class="metric-sub">Rules active</div>
+            </div>
+        </div>
+
+        <!-- Form Structure Map -->
+        <div class="section structure-map">
+            <div class="section-title">
+                <span>🗂️</span>
+                <span>Form Structure</span>
+            </div>
+
+            <div class="structure-item expanded" onclick="this.classList.toggle('expanded')">
+                <div class="structure-header">
+                    <span>📝 Personal Information</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="structure-meta">
+                    <span>8 fields</span>
+                    <span>•</span>
+                    <span>⏱️ ~2 min</span>
+                </div>
+                <div class="field-list">
+                    <div class="field-item">
+                        <span class="field-icon">📝</span>
+                        <span class="field-name">First name</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">📝</span>
+                        <span class="field-name">Last name</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">📧</span>
+                        <span class="field-name">Email address</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">📞</span>
+                        <span class="field-name">Phone number</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">🏠</span>
+                        <span class="field-name">Address</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">📮</span>
+                        <span class="field-name">Zip/postal code</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">🏙️</span>
+                        <span class="field-name">City</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">🌍</span>
+                        <span class="field-name">Country</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="structure-item" onclick="this.classList.toggle('expanded')">
+                <div class="structure-header">
+                    <span>☕ Subscription Details</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="structure-meta">
+                    <span>3 fields</span>
+                    <span>•</span>
+                    <span>⏱️ ~1 min</span>
+                </div>
+                <div class="field-list">
+                    <div class="field-item">
+                        <span class="field-icon">📅</span>
+                        <span class="field-name">Start date</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">☕</span>
+                        <span class="field-name">Preferred coffee type</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-icon">🔄</span>
+                        <span class="field-name">Delivery frequency</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="structure-item" onclick="this.classList.toggle('expanded')">
+                <div class="structure-header">
+                    <span>✅ Terms & Submit</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="structure-meta">
+                    <span>1 field</span>
+                    <span>•</span>
+                    <span>⏱️ ~30 sec</span>
+                </div>
+                <div class="field-list">
+                    <div class="field-item">
+                        <span class="field-icon">☑️</span>
+                        <span class="field-name">I agree to terms</span>
+                        <span class="field-badge">REQ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progressive Checklist -->
+        <div class="section">
+            <div class="section-title">
+                <span>✓</span>
+                <span>Implementation Steps</span>
+            </div>
+
+            <div class="checklist-item completed">
+                <div class="checklist-header">
+                    <div class="check-icon">✓</div>
+                    <div class="checklist-content">
+                        <div class="checklist-title">1. Generate form template</div>
+                        <div class="checklist-desc">Use the "Contact" form theme as base</div>
+                        <div class="quick-action">
+                            <div class="quick-action-label">⚡ Quick Action</div>
+                            <div>Template applied successfully</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checklist-header">
+                    <div class="check-icon">2</div>
+                    <div class="checklist-content">
+                        <div class="checklist-title">2. Add Personal Information section</div>
+                        <div class="checklist-desc">8 fields including name, email, phone, address</div>
+                        <div class="tip">
+                            <span class="tip-icon">💡</span>
+                            <strong>Tip:</strong> Use auto-complete for country field to improve UX
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checklist-header">
+                    <div class="check-icon">3</div>
+                    <div class="checklist-content">
+                        <div class="checklist-title">3. Configure Subscription Details</div>
+                        <div class="checklist-desc">Add date picker, dropdowns for coffee preferences</div>
+                        <div class="tip">
+                            <span class="tip-icon">🎯</span>
+                            <strong>Critical:</strong> Set up proper email format validation
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checklist-header">
+                    <div class="check-icon">4</div>
+                    <div class="checklist-content">
+                        <div class="checklist-title">4. Add Terms & Privacy consent</div>
+                        <div class="checklist-desc">GDPR-compliant checkbox with link to policy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checklist-header">
+                    <div class="check-icon">5</div>
+                    <div class="checklist-content">
+                        <div class="checklist-title">5. Add Submit button</div>
+                        <div class="checklist-desc">Configure confirmation message after submission</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="section insights">
+            <div class="section-title">
+                <span>🤖</span>
+                <span>Smart Suggestions</span>
+            </div>
+
+            <div class="insight-item">
+                <strong>💬 Consider:</strong> Adding a "Title/Salutation" field for more personalized email communications
+            </div>
+
+            <div class="insight-item">
+                <strong>📱 Mobile UX:</strong> 11 fields may be overwhelming on mobile. Consider splitting into 2-3 steps
+            </div>
+
+            <div class="insight-item">
+                <strong>♿ Accessibility:</strong> Ensure all form fields have proper ARIA labels for screen readers
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Make structure items expandable
+        document.querySelectorAll('.structure-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                const icon = this.querySelector('.expand-icon');
+                if (this.classList.contains('expanded')) {
+                    icon.textContent = '▼';
+                } else {
+                    icon.textContent = '▶';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

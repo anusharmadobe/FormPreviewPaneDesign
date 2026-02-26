@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan Details Panel – v6 (Pro Tip Icons)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --aem-purple: #6e0ff5;
+      --aem-purple-hover: #5a0bc7;
+      --aem-purple-light: #f3eeff;
+      --panel-bg: #fafafa;
+      --border: #e5e5e5;
+      --text: #2c2c2c;
+      --text-muted: #6b6b6b;
+      --required: #c00;
+      --radius: 8px;
+      --radius-sm: 6px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+    }
+
+    .layout {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 64px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid var(--border);
+    }
+
+    .center {
+      flex: 1;
+      min-width: 0;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .center .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      max-width: 560px;
+    }
+    .center .muted { color: var(--text-muted); font-size: 14px; }
+    .center .buttons { display: flex; gap: 12px; margin-top: 12px; }
+
+    /* Right panel = 1/3 */
+    .panel {
+      flex: 0 0 33.333%;
+      width: 33.333%;
+      min-width: 280px;
+      max-width: 480px;
+      background: #fff;
+      overflow-y: auto;
+      padding: 16px 20px 24px;
+      border-left: 1px solid var(--border);
+    }
+
+    .panel-header { margin-bottom: 14px; position: relative; }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 6px 0;
+      line-height: 1.3;
+    }
+    .panel-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #0d7d4d;
+      background: #e6f4ee;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .panel-metrics {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .panel-metric {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--panel-bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .panel-metric .value { font-weight: 700; color: var(--text); }
+    .panel-metric .label { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+    .panel-summary {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 0 12px 0;
+      padding: 8px 10px;
+      background: var(--panel-bg);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--aem-purple);
+    }
+    /* Goal + Audience as card (Enhanced) */
+    .panel-goal-card {
+      margin: 0 0 14px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .panel-goal-card .card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-goal-audience {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+      padding: 12px;
+      background: #fff;
+    }
+    .panel-goal-audience strong { color: var(--text); }
+    .panel-goal-audience .audience { margin-top: 8px; color: var(--text-muted); font-size: 11px; display: block; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+
+    /* Versioning: top right, icon only (small) */
+    .panel-version {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 26px;
+      height: 26px;
+    }
+    .panel-version select {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 0;
+    }
+    .panel-version .version-icon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .panel-version .version-icon svg { width: 18px; height: 18px; }
+
+    .btn-section-refine {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-left: 4px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-section-refine:hover { background: var(--aem-purple-light); color: var(--aem-purple); }
+    .btn-section-refine svg { width: 12px; height: 12px; }
+    .section-header-inner { display: flex; align-items: center; flex: 1; min-width: 0; flex-wrap: wrap; gap: 6px; }
+    .section-header-actions { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; }
+    .btn-section-action {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--aem-purple);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .btn-section-action:hover { background: var(--aem-purple-light); }
+
+    /* View toggle: Compact / Detailed */
+    .view-toggle {
+      display: flex;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      margin-bottom: 14px;
+    }
+    .view-toggle button {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-toggle button.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .view-toggle button:hover:not(.active) { color: var(--text); }
+
+    .section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--panel-bg);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .section-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--aem-purple);
+      background: var(--aem-purple-light);
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .section-header:hover { background: #f0f0f0; }
+    .section-header .chevron {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+    .section.open .section-header .chevron { transform: rotate(180deg); }
+    .section-body { padding: 0 12px 12px; }
+    .section:not(.open) .section-body { display: none; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .step:last-child { border-bottom: none; }
+    .step input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      accent-color: var(--aem-purple);
+      flex-shrink: 0;
+    }
+    .step input[type="checkbox"]:disabled {
+      cursor: default;
+      opacity: 0.85;
+    }
+    .step-content { flex: 1; min-width: 0; }
+    .step-title { font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+    /* Field type icons */
+    .field-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .field-icon svg { width: 16px; height: 16px; }
+
+    .field-required-star {
+      color: var(--required);
+      font-weight: 700;
+    }
+
+    .field-badges { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; }
+    .badge-pii, .badge-confidential, .badge-restricted, .badge-fragment {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .badge-pii { background: #fff4e6; color: #b35c00; }
+    .badge-confidential { background: #fce8e8; color: #a00; }
+    .badge-restricted { background: #e8e8f0; color: #5050a0; }
+    .badge-fragment { background: #e8f0f8; color: #1565a0; }
+
+    .field-list { list-style: none; margin: 6px 0 0 0; padding: 0; font-size: 13px; }
+    .field-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+      min-height: 32px;
+    }
+    .field-list li:last-child { border-bottom: none; }
+    .field-line-compact {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .field-name { flex: 1; min-width: 0; }
+    .field-detail-block {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      margin-left: 26px;
+      padding: 10px 12px;
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      width: calc(100% - 26px);
+    }
+    .field-detail-block .row { margin-bottom: 6px; line-height: 1.4; }
+    .field-detail-block .row:last-child { margin-bottom: 0; }
+    .field-detail-block .label { font-weight: 600; color: var(--text); margin-right: 6px; display: inline-block; min-width: 72px; }
+
+    .panel.view-detailed .field-detail-block { display: block; }
+    .panel.view-compact .field-detail-block { display: none; }
+    .panel.view-detailed .field-list li {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .panel.view-detailed .field-list li:last-child { border-bottom: none; }
+    .panel.view-detailed .field-line-compact { width: 100%; }
+
+    /* JSON view */
+    .panel-json-content {
+      display: none;
+      margin-top: 0;
+      padding: 12px 0;
+    }
+    .panel.view-json .panel-form-content { display: none; }
+    .panel.view-json .panel-json-content { display: block; }
+
+    /* Structure view (expandable tree) */
+    .panel-structure-content {
+      display: none;
+      margin-top: 0;
+      padding: 12px 0;
+    }
+    .panel.view-structure .panel-form-content { display: none; }
+    .panel.view-structure .panel-structure-content { display: block; }
+    .panel.view-structure .panel-json-content { display: none; }
+    .structure-tree { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .structure-item { border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; overflow: hidden; }
+    .structure-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: var(--panel-bg); cursor: pointer; user-select: none;
+      font-weight: 600; color: var(--text);
+    }
+    .structure-header:hover { background: #f0f0f0; }
+    .structure-header .chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; }
+    .structure-item.open .structure-header .chevron { transform: rotate(180deg); }
+    .structure-meta { font-size: 11px; font-weight: normal; color: var(--text-muted); margin-left: 8px; }
+    .structure-children { padding: 0 12px 12px; display: none; }
+    .structure-item.open .structure-children { display: block; }
+    .structure-children ul { list-style: none; margin: 0; padding: 0 0 0 16px; border-left: 2px solid var(--border); }
+    .structure-children li { padding: 4px 0 4px 8px; font-size: 12px; color: var(--text-muted); }
+    .structure-children li .field-name { color: var(--text); }
+
+    /* Quick action per section */
+    .quick-action {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-left: 3px solid var(--aem-purple);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .quick-action a { color: var(--aem-purple); font-weight: 500; text-decoration: none; }
+    .quick-action a:hover { text-decoration: underline; }
+
+    /* AI insights / suggestions block */
+    .insights-section {
+      margin-top: 16px;
+      padding: 14px;
+      background: #f0f4ff;
+      border: 1px solid #c5d4f7;
+      border-left: 4px solid #2563eb;
+      border-radius: var(--radius);
+    }
+    .insights-section h3 { font-size: 13px; font-weight: 700; margin: 0 0 10px 0; color: var(--text); }
+    .insights-list { list-style: none; margin: 0; padding: 0; font-size: 12px; color: var(--text); line-height: 1.5; }
+    .insights-list li { padding: 4px 0; padding-left: 18px; position: relative; }
+    .insights-list li::before { content: "→"; position: absolute; left: 0; color: #2563eb; font-weight: 700; }
+
+    /* Color-coded callouts (Enhanced) */
+    .callout-tip {
+      font-size: 12px;
+      padding: 10px 12px;
+      background: #fffbeb;
+      border-left: 4px solid #d97706;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      margin-top: 8px;
+    }
+    .callout-info {
+      font-size: 12px;
+      padding: 10px 12px;
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      margin-top: 8px;
+    }
+    .callout-success {
+      font-size: 12px;
+      padding: 10px 12px;
+      background: #ecfdf5;
+      border-left: 4px solid #059669;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    /* Preview view (Hybrid – rendered form) */
+    .panel-preview-content {
+      display: none;
+      margin-top: 0;
+      padding: 12px 0;
+    }
+    .panel.view-preview .panel-form-content,
+    .panel.view-preview .panel-structure-content,
+    .panel.view-preview .panel-json-content { display: none; }
+    .panel.view-preview .panel-preview-content { display: block; }
+    .preview-form {
+      max-width: 100%;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .preview-form h2 { font-size: 18px; font-weight: 700; margin: 0 0 16px 0; color: var(--text); }
+    .preview-form .preview-section { margin-bottom: 20px; }
+    .preview-form .preview-section-title { font-size: 13px; font-weight: 600; margin: 0 0 10px 0; color: var(--text); }
+    .preview-form .field-row { margin-bottom: 12px; }
+    .preview-form label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; color: var(--text); }
+    .preview-form label .required { color: var(--required); }
+    .preview-form input[type="text"],
+    .preview-form input[type="email"],
+    .preview-form input[type="tel"],
+    .preview-form input[type="date"],
+    .preview-form select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 14px;
+      background: #fff;
+    }
+    .preview-form .consent-row { margin: 16px 0; }
+    .preview-form .consent-row label { font-weight: normal; }
+    .preview-form .submit-btn {
+      margin-top: 16px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      background: var(--aem-purple);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .preview-form .submit-btn:hover { background: var(--aem-purple-hover); }
+    .panel-json-pre {
+      margin: 0;
+      padding: 12px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      line-height: 1.5;
+      overflow: auto;
+      max-height: 70vh;
+      font-family: ui-monospace, monospace;
+      white-space: pre;
+    }
+    .panel-json-pre code { color: inherit; }
+
+    .progress-wrap {
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--panel-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .progress-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .progress-bar {
+      height: 6px;
+      background: #e5e5e5;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--aem-purple);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .progress-text { font-size: 12px; color: var(--text-muted); }
+
+    /* Thank you: larger message text, smaller "Suggested", AI icon next to heading */
+    .thankyou-config {
+      font-size: 14px;
+      margin-top: 8px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .consent-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .consent-heading .step-title { margin: 0; }
+    .thankyou-config .thankyou-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .thankyou-config .thankyou-heading h4 { font-size: 12px; font-weight: 600; color: var(--text); margin: 0; }
+    .thankyou-ai-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .thankyou-ai-icon:hover { background: var(--aem-purple-light); color: var(--aem-purple); }
+    .thankyou-ai-icon svg { width: 14px; height: 14px; }
+    .thankyou-default {
+      color: var(--text);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+    .thankyou-suggested-label { font-size: 11px; color: var(--text-muted); font-weight: normal; }
+
+    /* Submission: tiles, selectable, with recommendation */
+    .submission-section { margin-top: 10px; }
+    .submission-section h4 { font-size: 11px; font-weight: 600; color: var(--text); margin: 0 0 8px 0; }
+    .submission-tiles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .submission-tile {
+      padding: 10px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .submission-tile:hover { border-color: var(--aem-purple); background: var(--aem-purple-light); }
+    .submission-tile.selected { border-color: var(--aem-purple); background: var(--aem-purple-light); }
+    .submission-tile .tile-name { font-weight: 600; color: var(--text); }
+    .submission-tile .tile-desc { color: var(--text-muted); margin-top: 2px; font-size: 10px; }
+    .submission-tile .tile-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      color: #0d7d4d;
+      background: #e6f4ee;
+      padding: 2px 5px;
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+    .option-download { margin-top: 10px; font-size: 11px; }
+
+    .optimization-section {
+      margin-top: 16px;
+      padding: 14px;
+      background: #f8f9fa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .optimization-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .optimization-section h3 {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+    }
+    .optimization-apply button {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .optimization-apply button:hover { color: var(--aem-purple); background: var(--aem-purple-light); }
+    .optimization-apply button svg { width: 12px; height: 12px; }
+    .optimization-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .optimization-list li {
+      display: block;
+      padding: 10px 0 10px 12px;
+      margin-bottom: 2px;
+      border-left: 3px solid var(--border);
+    }
+    .optimization-list li:last-child { margin-bottom: 0; }
+    .optimization-list .opt-category {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .optimization-list .opt-item-text { display: block; color: var(--text); }
+    .optimization-list .action { color: var(--aem-purple); font-weight: 500; margin-top: 4px; display: block; font-size: 11px; }
+    .optimization-list .opt-badge-tip { border-left-color: #d97706; }
+    .optimization-list .opt-badge-tip .opt-category { color: #b45309; }
+    .optimization-list .opt-badge-info { border-left-color: #2563eb; }
+    .optimization-list .opt-badge-info .opt-category { color: #1d4ed8; }
+    .optimization-list .opt-badge-structure { border-left-color: var(--aem-purple); }
+    .optimization-list .opt-badge-structure .opt-category { color: var(--aem-purple); }
+    .optimization-list .opt-badge-translation { border-left-color: #059669; }
+    .optimization-list .opt-badge-translation .opt-category { color: #047857; }
+    .optimization-list .opt-badge-consider { border-left-color: #d97706; }
+    .optimization-list .opt-badge-consider .opt-category { color: #b45309; }
+    .optimization-list .opt-badge-layout { border-left-color: #6366f1; }
+    .optimization-list .opt-badge-layout .opt-category { color: #4338ca; }
+
+    .tip {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 6px 8px;
+      background: #f0f4ff;
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      border-left: 3px solid var(--aem-purple);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-primary { background: var(--aem-purple); color: #fff; }
+    .btn-primary:hover { background: var(--aem-purple-hover); }
+    .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--panel-bg); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar"></aside>
+
+    <main class="center">
+      <div class="card">
+        <p class="muted">Plan created</p>
+        <p><strong>Subscription sign-up form with personal details</strong></p>
+        <p class="muted">Review the details in the panel → and share any adjustments before moving forward.</p>
+        <div class="buttons">
+          <button class="btn btn-secondary">Modify the plan</button>
+          <button class="btn btn-primary">Proceed with the plan as is</button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel view-compact" id="rightPanel">
+      <div class="panel-header">
+        <h1 class="panel-title">Subscription sign-up form with personal details</h1>
+        <div class="panel-version" title="Plan version">
+          <select id="planVersion" aria-label="Plan version">
+            <option value="v1">Version 1 (current)</option>
+            <option value="v2">Version 2 (fewer required)</option>
+            <option value="v3">Version 3 (optimized)</option>
+          </select>
+          <span class="version-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v14h8V2H8z"/><path d="M12 6v12h8V6h-8z"/></svg></span>
+        </div>
+        <span class="panel-badge">Plan – Ready to begin</span>
+        <div class="panel-metrics">
+          <div class="panel-metric"><div class="value">~3 min</div><div class="label">Est. filling time</div></div>
+          <div class="panel-metric"><div class="value">~24%</div><div class="label">Est. conversion rate</div></div>
+        </div>
+        <p class="panel-summary">8 fields · 2 sections · Frescopa theme</p>
+        <div class="panel-goal-card">
+          <div class="card-label">Goal</div>
+          <div class="panel-goal-audience">
+            <strong>Goal:</strong> Add a subscription sign-up form with personal details so visitors can subscribe and submit their personal and subscription preferences.
+            <span class="audience">Audience: New and returning visitors signing up for coffee subscription; B2C, multi-region.</span>
+          </div>
+        </div>
+        <div class="view-toggle">
+          <button type="button" class="active" data-view="compact">Compact</button>
+          <button type="button" data-view="detailed">Detailed</button>
+          <button type="button" data-view="preview">Preview</button>
+          <button type="button" data-view="structure">Structure</button>
+          <button type="button" data-view="json">JSON</button>
+        </div>
+      </div>
+
+      <div class="panel-preview-content" id="panelPreviewContent" aria-hidden="true">
+        <div class="preview-form" id="previewForm">
+          <h2>Subscription sign-up form with personal details</h2>
+          <div class="preview-section">
+            <div class="preview-section-title">Personal information</div>
+            <div class="field-row">
+              <label>First name <span class="required">*</span></label>
+              <input type="text" placeholder="e.g. John" />
+            </div>
+            <div class="field-row">
+              <label>Last name</label>
+              <input type="text" placeholder="e.g. Doe" />
+            </div>
+            <div class="field-row">
+              <label>Date of birth</label>
+              <input type="date" placeholder="MM/DD/YYYY" />
+            </div>
+            <div class="field-row">
+              <label>Email address <span class="required">*</span></label>
+              <input type="email" placeholder="you@example.com" />
+            </div>
+            <div class="field-row">
+              <label>Phone number</label>
+              <input type="tel" placeholder="+1 (555) 000-0000" />
+            </div>
+            <div class="field-row">
+              <label>Address</label>
+              <input type="text" placeholder="Street address" />
+            </div>
+          </div>
+          <div class="preview-section">
+            <div class="preview-section-title">Subscription details</div>
+            <div class="field-row">
+              <label>Start date</label>
+              <input type="date" />
+            </div>
+            <div class="field-row">
+              <label>Preferred coffee type</label>
+              <select><option>Whole Bean</option><option>Ground</option><option>Pods</option><option>Single-origin</option></select>
+            </div>
+            <div class="field-row">
+              <label>Delivery frequency</label>
+              <select><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option></select>
+            </div>
+          </div>
+          <div class="consent-row">
+            <label><input type="checkbox" /> I agree to MyBarista terms and privacy policy <span class="required">*</span></label>
+          </div>
+          <button type="button" class="submit-btn">Submit</button>
+        </div>
+      </div>
+
+      <div class="panel-structure-content" id="panelStructureContent" aria-hidden="true">
+        <ul class="structure-tree" id="structureTree">
+          <li class="structure-item" data-structure-item>
+            <div class="structure-header">Form setup <span class="structure-meta">—</span><span class="chevron">▼</span></div>
+            <div class="structure-children"><ul><li>Generate form with Frescopa theme</li></ul></div>
+          </li>
+          <li class="structure-item open" data-structure-item>
+            <div class="structure-header">Personal information <span class="structure-meta">6 fields · ~2 min</span><span class="chevron">▼</span></div>
+            <div class="structure-children">
+              <ul>
+                <li><span class="field-name">First name</span> *</li>
+                <li><span class="field-name">Last name</span></li>
+                <li><span class="field-name">Date of birth</span></li>
+                <li><span class="field-name">Email address</span> *</li>
+                <li><span class="field-name">Phone number</span></li>
+                <li><span class="field-name">Address</span></li>
+              </ul>
+            </div>
+          </li>
+          <li class="structure-item" data-structure-item>
+            <div class="structure-header">Subscription details <span class="structure-meta">3 fields · ~1 min</span><span class="chevron">▼</span></div>
+            <div class="structure-children">
+              <ul>
+                <li><span class="field-name">Start date</span></li>
+                <li><span class="field-name">Preferred coffee type</span></li>
+                <li><span class="field-name">Delivery frequency</span></li>
+              </ul>
+            </div>
+          </li>
+          <li class="structure-item" data-structure-item>
+            <div class="structure-header">Legal & submit <span class="structure-meta">consent + thank you</span><span class="chevron">▼</span></div>
+            <div class="structure-children"><ul><li>Consent checkbox</li><li>Thank you message</li><li>Submission</li></ul></div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="panel-json-content" id="panelJsonContent" aria-hidden="true">
+        <pre class="panel-json-pre"><code id="formHeadlessJson"></code></pre>
+      </div>
+
+      <div class="panel-form-content" id="panelFormContent">
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">1</span>Form setup <span class="section-header-actions"><button type="button" class="btn-section-action">Add field</button><button type="button" class="btn-section-action">Edit theme</button></span><button type="button" class="btn-section-refine" title="Refine section" aria-label="Refine section"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button></span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="step">
+            <input type="checkbox" id="s1" data-step disabled tabindex="-1" aria-label="Form setup step (read-only)" />
+            <div class="step-content">
+              <div class="step-title">Generate form with Frescopa theme and default template</div>
+              <div class="step-desc">Base form layout and styling.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">2</span>Personal information <span class="section-header-actions"><button type="button" class="btn-section-action">Add field</button><button type="button" class="btn-section-action">Edit validation</button></span><button type="button" class="btn-section-refine" title="Refine section" aria-label="Refine section"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button></span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="step">
+            <input type="checkbox" id="s2" data-step disabled tabindex="-1" aria-label="Personal information step (read-only)" />
+            <div class="step-content">
+              <div class="step-title">Add Personal Information section</div>
+              <ul class="field-list">
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V6h16v1M4 12h16M4 17h10"/></svg></span>
+                    <span class="field-name">First name <span class="field-required-star">*</span></span>
+                    <span class="field-badges"><span class="badge-pii">PII</span></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> Letters and spaces, 1–50 chars</div>
+                    <div class="row"><span class="label">Placeholder:</span> e.g. John</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V6h16v1M4 12h16M4 17h10"/></svg></span>
+                    <span class="field-name">Last name</span>
+                    <span class="field-badges"><span class="badge-pii">PII</span></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> Letters and spaces, 1–50 chars</div>
+                    <div class="row"><span class="label">Placeholder:</span> e.g. Doe</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                    <span class="field-name">Date of birth</span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-confidential">Confidential</span><span class="badge-restricted">Restricted</span></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> Valid date, age 13+</div>
+                    <div class="row"><span class="label">Placeholder:</span> MM/DD/YYYY</div>
+                    <div class="row"><span class="label">Default:</span> — (optional; restricted in some regions)</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg></span>
+                    <span class="field-name">Email address <span class="field-required-star">*</span></span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-confidential">Confidential</span></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> RFC 5322 email</div>
+                    <div class="row"><span class="label">Placeholder:</span> you@example.com</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></span>
+                    <span class="field-name">Phone number</span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-confidential">Confidential</span></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> E.164 or national format</div>
+                    <div class="row"><span class="label">Placeholder:</span> +1 (555) 000-0000</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V6h16v1M4 12h16M4 17h10"/></svg></span>
+                    <span class="field-name">Address</span>
+                    <span class="field-badges"><span class="badge-fragment">Fragment</span></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> 1–100 chars</div>
+                    <div class="row"><span class="label">Placeholder:</span> Street address</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                  </div>
+                </li>
+                </ul>
+              <div class="tip callout-tip">Only First name and Email are required here; other fields optional to reduce friction.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">3</span>Subscription details <span class="section-header-actions"><button type="button" class="btn-section-action">Add field</button><button type="button" class="btn-section-action">Edit options</button></span><button type="button" class="btn-section-refine" title="Refine section" aria-label="Refine section"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button></span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="step">
+            <input type="checkbox" id="s3" data-step disabled tabindex="-1" aria-label="Subscription details step (read-only)" />
+            <div class="step-content">
+              <div class="step-title">Add Subscription Details section</div>
+              <ul class="field-list">
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                    <span class="field-name">Start date</span>
+                    <span class="field-badges"></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> Today or future date</div>
+                    <div class="row"><span class="label">Placeholder:</span> MM/DD/YYYY</div>
+                    <div class="row"><span class="label">Default:</span> Today</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Dropdown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/><path d="M4 4h16v16H4z"/></svg></span>
+                    <span class="field-name">Preferred coffee type</span>
+                    <span class="field-badges"></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> One of: Whole Bean, Ground, Pods, Single-origin</div>
+                    <div class="row"><span class="label">Placeholder:</span> Select type</div>
+                    <div class="row"><span class="label">Default:</span> Whole Bean</div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Dropdown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/><path d="M4 4h16v16H4z"/></svg></span>
+                    <span class="field-name">Delivery frequency</span>
+                    <span class="field-badges"></span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Validation:</span> Weekly, Bi-weekly, Monthly</div>
+                    <div class="row"><span class="label">Placeholder:</span> How often?</div>
+                    <div class="row"><span class="label">Default:</span> Monthly</div>
+                  </div>
+                </li>
+              </ul>
+              <div class="tip callout-tip">Optional fields here can reduce friction and improve completion — visitors can skip and still submit.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">4</span>Legal & submit</span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="step">
+            <input type="checkbox" id="s4" data-step disabled tabindex="-1" aria-label="Consent step (read-only)" />
+            <div class="step-content">
+              <div class="consent-heading">
+                <div class="step-title">Consent checkbox <span class="field-required-star">*</span></div>
+                <button type="button" class="thankyou-ai-icon" title="Edit consent text" aria-label="Edit consent text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+              </div>
+              <div class="step-desc">"I agree to MyBarista terms and privacy policy".</div>
+            </div>
+          </div>
+          <div class="thankyou-config">
+            <div class="thankyou-heading">
+              <h4>Thank you message</h4>
+              <button type="button" class="thankyou-ai-icon" title="Edit message" aria-label="Edit message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+            </div>
+            <div class="thankyou-default">
+              <span class="thankyou-suggested-label">Suggested: </span>"Thanks for subscribing! We've sent a confirmation to your email. You'll receive your first delivery as per your chosen frequency."
+            </div>
+          </div>
+          <div class="submission-section">
+            <h4>Submission</h4>
+            <div class="submission-tiles">
+              <button type="button" class="submission-tile selected" data-tile="adobe">
+                <span class="tile-name">Adobe Campaign / Journey</span>
+                <span class="tile-desc">Native integration for AEM</span>
+                <span class="tile-badge">Recommended</span>
+              </button>
+              <button type="button" class="submission-tile" data-tile="salesforce">
+                <span class="tile-name">Salesforce Marketing Cloud</span>
+                <span class="tile-desc">CRM & marketing automation</span>
+              </button>
+              <button type="button" class="submission-tile" data-tile="rest">
+                <span class="tile-name">REST API / webhook</span>
+                <span class="tile-desc">Custom backend</span>
+              </button>
+              <button type="button" class="submission-tile" data-tile="marketo">
+                <span class="tile-name">Marketo / HubSpot</span>
+                <span class="tile-desc">Lead gen & nurture</span>
+              </button>
+            </div>
+            <div class="option-download"><label><input type="checkbox" checked /> Allow user to download submitted form (e.g. PDF copy)</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="optimization-section optimization-merged">
+        <div class="optimization-section-header">
+          <h3>Suggestions & optimization</h3>
+          <div class="optimization-apply">
+            <button type="button" title="Apply all optimizations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg> Apply all</button>
+          </div>
+        </div>
+        <ul class="optimization-list">
+          <li class="opt-badge-tip"><span class="opt-category">Pro tip</span><span class="opt-item-text"><strong>Optional fields</strong> — Consider making Phone optional to reduce friction.<span class="action"> Make Phone optional</span></span></li>
+          <li class="opt-badge-info"><span class="opt-category">Helper</span><span class="opt-item-text"><strong>Field helpers</strong> — Add a short helper under "Preferred coffee type" to improve completion.<span class="action"> Add helper text</span></span></li>
+          <li class="opt-badge-structure"><span class="opt-category">Structure</span><span class="opt-item-text"><strong>Progressive disclosure</strong> — Show Address only when needed (e.g. after country).<span class="action"> Configure progressive disclosure</span></span></li>
+          <li class="opt-badge-translation"><span class="opt-category">Translation</span><span class="opt-item-text"><strong>Automated translations</strong> — Add multi-language support to reach more visitors and improve conversion in regional markets.<span class="action"> Enable automated translations</span></span></li>
+          <li class="opt-badge-consider"><span class="opt-category">Consider</span><span class="opt-item-text"><strong>Many fields in one section</strong> — Personal information has 10 fields. Consider splitting into 2 steps or using progressive disclosure.<span class="action"> Suggest simpler flow</span></span></li>
+          <li class="opt-badge-layout"><span class="opt-category">Layout</span><span class="opt-item-text"><strong>Multiple sections</strong> — Consider a single-page flow with clear visual grouping.<span class="action"> Optimize structure</span></span></li>
+          <li class="opt-badge-tip"><span class="opt-category">Pro tip</span><span class="opt-item-text"><strong>Required vs optional</strong> — Fewer required fields can lower friction.<span class="action"> Review required fields</span></span></li>
+        </ul>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">Progress</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">0 of 4 steps completed</div>
+      </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      var panel = document.getElementById('rightPanel');
+      var toggleBtns = document.querySelectorAll('.view-toggle button');
+      var sections = document.querySelectorAll('[data-section]');
+      var steps = document.querySelectorAll('[data-step]');
+      var progressFill = document.getElementById('progressFill');
+      var progressText = document.getElementById('progressText');
+      var tiles = document.querySelectorAll('.submission-tile');
+
+      var formHeadlessJson = {
+        "title": "Subscription sign-up form with personal details",
+        "theme": "frescopa",
+        "description": "Add a subscription sign-up form with personal details so visitors can subscribe and submit their personal and subscription preferences.",
+        "sections": [
+          {
+            "id": "personal-information",
+            "title": "Personal information",
+            "fields": [
+              { "name": "firstName", "label": "First name", "type": "string", "required": true, "placeholder": "e.g. John", "dataType": "PII" },
+              { "name": "lastName", "label": "Last name", "type": "string", "required": false, "placeholder": "e.g. Doe", "dataType": "PII" },
+              { "name": "dateOfBirth", "label": "Date of birth", "type": "date", "required": false, "placeholder": "MM/DD/YYYY", "dataType": "PII,Confidential,Restricted" },
+              { "name": "email", "label": "Email address", "type": "email", "required": true, "placeholder": "you@example.com", "dataType": "PII,Confidential" },
+              { "name": "phone", "label": "Phone number", "type": "tel", "required": false, "placeholder": "+1 (555) 000-0000", "dataType": "PII,Confidential" },
+              { "name": "address", "label": "Address", "type": "fragment", "required": false, "contentFragment": true }
+            ]
+          },
+          {
+            "id": "subscription-details",
+            "title": "Subscription details",
+            "fields": [
+              { "name": "startDate", "label": "Start date", "type": "date", "required": false, "default": "today" },
+              { "name": "coffeeType", "label": "Preferred coffee type", "type": "dropdown", "required": false, "options": ["Whole Bean", "Ground", "Pods", "Single-origin"], "default": "Whole Bean" },
+              { "name": "deliveryFrequency", "label": "Delivery frequency", "type": "dropdown", "required": false, "options": ["Weekly", "Bi-weekly", "Monthly"], "default": "Monthly" }
+            ]
+          }
+        ],
+        "consent": { "label": "I agree to MyBarista terms and privacy policy", "required": true },
+        "thankYouMessage": "Thanks for subscribing! We've sent a confirmation to your email. You'll receive your first delivery as per your chosen frequency.",
+        "submission": { "allowDownload": true }
+      };
+
+      var jsonEl = document.getElementById('formHeadlessJson');
+      if (jsonEl) jsonEl.textContent = JSON.stringify(formHeadlessJson, null, 2);
+
+      var panelFormContent = document.getElementById('panelFormContent');
+      var panelJsonContent = document.getElementById('panelJsonContent');
+
+      toggleBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var view = this.getAttribute('data-view');
+          toggleBtns.forEach(function (b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          panel.classList.remove('view-compact', 'view-detailed', 'view-json', 'view-structure', 'view-preview');
+          panel.classList.add('view-' + view);
+          var isForm = view === 'compact' || view === 'detailed';
+          if (panelFormContent) panelFormContent.style.display = isForm ? '' : 'none';
+          if (panelJsonContent) {
+            panelJsonContent.style.display = view === 'json' ? 'block' : 'none';
+            panelJsonContent.setAttribute('aria-hidden', view !== 'json');
+          }
+          var panelStructureContent = document.getElementById('panelStructureContent');
+          if (panelStructureContent) {
+            panelStructureContent.style.display = view === 'structure' ? 'block' : 'none';
+            panelStructureContent.setAttribute('aria-hidden', view !== 'structure');
+          }
+          var panelPreviewContent = document.getElementById('panelPreviewContent');
+          if (panelPreviewContent) {
+            panelPreviewContent.style.display = view === 'preview' ? 'block' : 'none';
+            panelPreviewContent.setAttribute('aria-hidden', view !== 'preview');
+          }
+        });
+      });
+
+      var structureItems = document.querySelectorAll('[data-structure-item]');
+      structureItems.forEach(function (item) {
+        var header = item.querySelector('.structure-header');
+        if (header) header.addEventListener('click', function () { item.classList.toggle('open'); });
+      });
+
+      function updateProgress() {
+        var checked = document.querySelectorAll('[data-step]:checked').length;
+        var total = steps.length;
+        var pct = total ? (checked / total) * 100 : 0;
+        progressFill.style.width = pct + '%';
+        progressText.textContent = checked + ' of ' + total + ' steps completed';
+      }
+
+      sections.forEach(function (s) {
+        var header = s.querySelector('.section-header');
+        header.addEventListener('click', function (e) {
+          if (e.target.closest('.btn-section-refine') || e.target.closest('.section-header-actions')) return;
+          s.classList.toggle('open');
+        });
+      });
+
+      steps.forEach(function (cb) {
+        cb.addEventListener('change', updateProgress);
+      });
+
+      tiles.forEach(function (t) {
+        t.addEventListener('click', function () {
+          tiles.forEach(function (x) { x.classList.remove('selected'); });
+          this.classList.add('selected');
+        });
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>
