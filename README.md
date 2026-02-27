@@ -12,6 +12,12 @@ open PreviewForm/cursor-agent/plan-details-panel-v12.html
 
 Use the **Compact** | **Detailed** | **Preview** | **JSON** buttons in the right panel to switch views. No server or build step.
 
+**View without cloning** — Open the file directly from the repo in your browser:
+
+- **HTMLPreview:** [Open v12 in browser](https://htmlpreview.github.io/?https://raw.githubusercontent.com/anusharmadobe/FormPreviewPaneDesign/main/PreviewForm/cursor-agent/plan-details-panel-v12.html)  
+  Or paste: `https://htmlpreview.github.io/?https://raw.githubusercontent.com/anusharmadobe/FormPreviewPaneDesign/main/PreviewForm/cursor-agent/plan-details-panel-v12.html`
+- **Raw file:** On GitHub, open the `.html` file → click **Raw** → copy the URL and open it in a new tab (may render or download depending on browser).
+
 ---
 
 ## What this is
