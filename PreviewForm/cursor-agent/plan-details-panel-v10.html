@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan Details Panel – v10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --aem-purple: #6e0ff5;
+      --aem-purple-hover: #5a0bc7;
+      --aem-purple-light: #f3eeff;
+      --panel-bg: #fafafa;
+      --border: #e5e5e5;
+      --text: #2c2c2c;
+      --text-muted: #6b6b6b;
+      --required: #c00;
+      --radius: 8px;
+      --radius-sm: 6px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+    }
+
+    .layout {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 64px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid var(--border);
+    }
+
+    .center {
+      flex: 1;
+      min-width: 0;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .center .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      max-width: 560px;
+    }
+    .center .muted { color: var(--text-muted); font-size: 14px; }
+    .center .buttons { display: flex; gap: 12px; margin-top: 12px; }
+
+    /* Right panel = 1/3 */
+    .panel {
+      flex: 0 0 33.333%;
+      width: 33.333%;
+      min-width: 280px;
+      max-width: 480px;
+      background: #fff;
+      overflow-y: auto;
+      padding: 16px 20px 24px;
+      border-left: 1px solid var(--border);
+    }
+
+    .panel-header { margin-bottom: 14px; position: relative; }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 2px 0;
+      line-height: 1.3;
+    }
+    .panel-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 0 10px 0;
+      line-height: 1.4;
+    }
+    .panel-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #0d7d4d;
+      background: #e6f4ee;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .panel-metrics {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .panel-metric {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--panel-bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .panel-metric .value { font-weight: 700; color: var(--text); }
+    .panel-metric .label { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+    .panel-summary {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 0 12px 0;
+      padding: 8px 10px;
+      background: var(--panel-bg);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--aem-purple);
+    }
+    .panel-last-edited { font-size: 11px; color: var(--text-muted); margin: -4px 0 8px 0; }
+    .intent-source {
+      margin: 0 0 12px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      font-size: 12px;
+    }
+    .intent-source-header {
+      padding: 8px 12px; background: var(--panel-bg);
+      cursor: pointer; user-select: none; font-weight: 600;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .intent-source-header .chevron { font-size: 10px; transition: transform 0.2s; }
+    .intent-source.open .intent-source-header .chevron { transform: rotate(180deg); }
+    .intent-source-body { padding: 10px 12px; display: none; border-top: 1px solid var(--border); }
+    .intent-source.open .intent-source-body { display: block; }
+    .intent-source-body .row { margin-bottom: 6px; }
+    .intent-source-body .label { font-weight: 600; color: var(--text-muted); font-size: 11px; }
+    .panel-context { margin: 0 0 12px 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; font-size: 12px; }
+    .panel-context-header { padding: 8px 12px; background: var(--panel-bg); cursor: pointer; user-select: none; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+    .panel-context-header .chevron { font-size: 10px; transition: transform 0.2s; color: var(--text-muted); }
+    .panel-context.open .panel-context-header .chevron { transform: rotate(180deg); }
+    .panel-context-body { padding: 0; display: none; border-top: 1px solid var(--border); }
+    .panel-context.open .panel-context-body { display: block; }
+    .panel-context .intent-source { margin: 0; border: none; border-radius: 0; border-bottom: 1px solid var(--border); }
+    .panel-context .intent-source-header { background: #fff; }
+    .panel-context .panel-goal-card { margin: 0; border: none; border-radius: 0; box-shadow: none; }
+    .panel-context .panel-goal-card .card-label { border-radius: 0; }
+    .version-history { font-size: 11px; padding: 8px; max-height: 120px; overflow-y: auto; }
+    .version-history li { margin-bottom: 4px; }
+    .developer-views .dev-section { margin-bottom: 16px; }
+    .developer-views .dev-section h4 { font-size: 12px; margin: 0 0 8px 0; }
+    .developer-views .dev-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .dev-table { font-size: 11px; width: 100%; border-collapse: collapse; }
+    .dev-table th, .dev-table td { padding: 6px 8px; text-align: left; border: 1px solid var(--border); }
+    .dev-code { font-size: 11px; padding: 8px; background: #1e1e1e; color: #d4d4d4; border-radius: 4px; font-family: monospace; }
+    .templates-section { margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: var(--radius); border: 1px solid var(--border); }
+    .templates-section h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px 0; color: var(--text); }
+    .template-copy-list { font-size: 11px; }
+    .template-copy-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .template-copy-item:last-child { margin-bottom: 0; }
+    .template-label { font-weight: 600; min-width: 100px; }
+    .template-text { flex: 1; color: var(--text-muted); }
+    .btn-use-copy { font-size: 10px; padding: 2px 6px; }
+    .additional-suggestions-buttons { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .additional-suggestion-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text); cursor: pointer;
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: #fff;
+      font-family: inherit; font-weight: 500;
+    }
+    .additional-suggestion-btn:hover { border-color: var(--aem-purple); background: var(--aem-purple-light); color: var(--aem-purple); }
+    .additional-suggestion-btn .opt-icon { flex-shrink: 0; color: var(--aem-purple); }
+    /* Goal + Audience as card (Enhanced) */
+    .panel-goal-card {
+      margin: 0 0 14px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .panel-goal-card .card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-goal-audience {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+      padding: 12px;
+      background: #fff;
+    }
+    .panel-goal-audience strong { color: var(--text); }
+    .panel-goal-audience .audience { margin-top: 8px; color: var(--text-muted); font-size: 11px; display: block; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+
+    /* Versioning: top right, icon only (small) */
+    .panel-version {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 26px;
+      height: 26px;
+    }
+    .panel-version select {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 0;
+    }
+    .panel-version .version-icon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .panel-version .version-icon svg { width: 18px; height: 18px; }
+
+    .btn-section-refine {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-left: 4px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-section-refine:hover { background: var(--aem-purple-light); color: var(--aem-purple); }
+    .btn-section-refine svg { width: 12px; height: 12px; }
+    .section-header-inner { display: flex; align-items: center; flex: 1; min-width: 0; flex-wrap: wrap; gap: 6px; }
+    .section-header-actions { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; }
+    .btn-section-action {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--aem-purple);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .btn-section-action:hover { background: var(--aem-purple-light); }
+
+    /* View toggle: Compact / Detailed */
+    .view-toggle {
+      display: flex;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      margin-bottom: 14px;
+    }
+    .view-toggle button {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-toggle button.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .view-toggle button:hover:not(.active) { color: var(--text); }
+
+    .section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--panel-bg);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .section-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--aem-purple);
+      background: var(--aem-purple-light);
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .section-header:hover { background: #f0f0f0; }
+    .section-header .chevron {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+    .section.open .section-header .chevron { transform: rotate(180deg); }
+    .section-body { padding: 0 12px 12px; }
+    .section:not(.open) .section-body { display: none; }
+    .section-meta { font-size: 11px; font-weight: normal; color: var(--text-muted); margin-left: 6px; }
+    .section-meta .field-count { margin-right: 4px; }
+    .section-purpose-block {
+      margin: 10px 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      overflow: hidden;
+    }
+    .section-purpose-header {
+      padding: 8px 12px;
+      background: #f8f9fa;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-purpose-header:hover { background: #f0f0f0; }
+    .section-purpose-header-left { display: inline-flex; align-items: center; gap: 6px; }
+    .section-purpose-info-icon { display: inline-flex; color: var(--text-muted); }
+    .section-purpose-header:hover .section-purpose-info-icon { color: var(--aem-purple); }
+    .section-purpose-label { font-size: 12px; font-weight: 600; color: var(--text); }
+    .section-purpose-header .chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; }
+    .section-purpose-block.open .section-purpose-header .chevron { transform: rotate(180deg); }
+    .section-purpose-body {
+      padding: 10px 12px;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .section-purpose-block.open .section-purpose-body { display: block; }
+    .section-purpose-block .row { margin-bottom: 4px; }
+    .section-purpose-block .row:last-child { margin-bottom: 0; }
+    .section-purpose-block .label { font-weight: 600; color: var(--text); margin-right: 6px; }
+    .step-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .step-title-row .step-title { margin: 0; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .step:last-child { border-bottom: none; }
+    .step input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      accent-color: var(--aem-purple);
+      flex-shrink: 0;
+    }
+    .step input[type="checkbox"]:disabled {
+      cursor: default;
+      opacity: 0.85;
+    }
+    .step-content { flex: 1; min-width: 0; }
+    .step-title { font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+    /* Field type icons */
+    .field-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .field-icon svg { width: 16px; height: 16px; }
+
+    .field-required-star {
+      color: var(--required);
+      font-weight: 700;
+    }
+
+    .field-badges { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; }
+    .badge-pii, .badge-confidential, .badge-restricted, .badge-fragment {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .badge-pii { background: #fff4e6; color: #b35c00; }
+    .badge-confidential { background: #fce8e8; color: #a00; }
+    .badge-restricted { background: #e8e8f0; color: #5050a0; }
+    .badge-fragment { background: #e8f0f8; color: #1565a0; }
+    .badge-conditional { background: #e0e7ff; color: #4338ca; }
+    .badge-format { background: #f3e8ff; color: #6b21a8; }
+    .badge-a11y { background: #fef9c3; color: #a16207; }
+    .badge-warning { background: #ffedd5; color: #c2410c; }
+    .field-list li { position: relative; }
+    .field-list li[data-help]:hover::after {
+      content: attr(data-help);
+      position: absolute;
+      left: 0;
+      top: 100%;
+      z-index: 10;
+      padding: 8px 10px;
+      background: #1e1e1e;
+      color: #fff;
+      font-size: 11px;
+      border-radius: 4px;
+      white-space: normal;
+      max-width: 280px;
+      margin-top: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .field-actions { display: flex; gap: 2px; margin-left: 4px; }
+    .field-actions button {
+      width: 24px; height: 24px;
+      padding: 0; border: none; background: transparent;
+      border-radius: 4px; cursor: pointer;
+      color: var(--text-muted);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .field-actions button:hover { background: var(--aem-purple-light); color: var(--aem-purple); }
+    .field-actions button svg { width: 12px; height: 12px; }
+    .field-suggestions { display: none; margin-top: 8px; padding: 8px; background: #f0f4ff; border-radius: 4px; font-size: 11px; }
+    .field-suggestions.visible { display: block; }
+
+    .field-list { list-style: none; margin: 6px 0 0 0; padding: 0; font-size: 13px; }
+    .field-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+      min-height: 32px;
+    }
+    .field-list li:last-child { border-bottom: none; }
+    .field-line-compact {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .field-name { flex: 1; min-width: 0; }
+    .field-detail-block {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      margin-left: 26px;
+      padding: 10px 12px;
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      width: calc(100% - 26px);
+    }
+    .field-detail-block .row { margin-bottom: 6px; line-height: 1.4; }
+    .field-detail-block .row:last-child { margin-bottom: 0; }
+    .field-detail-block .label { font-weight: 600; color: var(--text); margin-right: 6px; display: inline-block; min-width: 72px; }
+    .field-detail-expand { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+    .field-detail-expand-header { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); cursor: pointer; user-select: none; margin-bottom: 4px; }
+    .field-detail-expand-header .chevron { font-size: 8px; margin-left: 4px; transition: transform 0.2s; }
+    .field-detail-expand.open .field-detail-expand-header .chevron { transform: rotate(180deg); }
+    .field-detail-expand-body { display: none; font-size: 11px; }
+    .field-detail-expand.open .field-detail-expand-body { display: block; }
+
+    .panel.view-detailed .field-detail-block { display: block; }
+    .panel.view-compact .field-detail-block { display: none; }
+    .panel.view-detailed .field-list li {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .panel.view-detailed .field-list li:last-child { border-bottom: none; }
+    .panel.view-detailed .field-line-compact { width: 100%; }
+    .panel.view-compact .field-actions { display: none; }
+    .panel.view-compact .badge-format { display: none; }
+    .panel.view-compact .section-purpose-block { display: none; }
+
+    /* Sections 2 & 3: no checkbox, align fields with consent */
+    .section-fields-block { padding-left: 26px; margin: 8px 0 0 0; }
+    .section-fields-block .step-title-row { margin-bottom: 6px; }
+
+    /* JSON view */
+    .panel-json-content {
+      display: none;
+      margin-top: 0;
+      padding: 12px 0;
+    }
+    .panel.view-json .panel-form-content { display: none; }
+    .panel.view-json .panel-json-content { display: block; }
+
+    /* Structure view (expandable tree) */
+    .panel-structure-content {
+      display: none;
+      margin-top: 0;
+      padding: 12px 0;
+    }
+    .panel.view-structure .panel-form-content { display: none; }
+    .panel.view-structure .panel-structure-content { display: block; }
+    .panel.view-structure .panel-json-content { display: none; }
+    .structure-tree { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .structure-item { border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; overflow: hidden; }
+    .structure-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: var(--panel-bg); cursor: pointer; user-select: none;
+      font-weight: 600; color: var(--text);
+    }
+    .structure-header:hover { background: #f0f0f0; }
+    .structure-header .chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; }
+    .structure-item.open .structure-header .chevron { transform: rotate(180deg); }
+    .structure-meta { font-size: 11px; font-weight: normal; color: var(--text-muted); margin-left: 8px; }
+    .structure-children { padding: 0 12px 12px; display: none; }
+    .structure-item.open .structure-children { display: block; }
+    .structure-children ul { list-style: none; margin: 0; padding: 0 0 0 16px; border-left: 2px solid var(--border); }
+    .structure-children li { padding: 4px 0 4px 8px; font-size: 12px; color: var(--text-muted); }
+    .structure-children li .field-name { color: var(--text); }
+
+    /* Quick action per section */
+    .quick-action {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-left: 3px solid var(--aem-purple);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .quick-action a { color: var(--aem-purple); font-weight: 500; text-decoration: none; }
+    .quick-action a:hover { text-decoration: underline; }
+
+    /* AI insights / suggestions block */
+    .insights-section {
+      margin-top: 16px;
+      padding: 14px;
+      background: #f0f4ff;
+      border: 1px solid #c5d4f7;
+      border-left: 4px solid #2563eb;
+      border-radius: var(--radius);
+    }
+    .insights-section h3 { font-size: 13px; font-weight: 700; margin: 0 0 10px 0; color: var(--text); }
+    .insights-list { list-style: none; margin: 0; padding: 0; font-size: 12px; color: var(--text); line-height: 1.5; }
+    .insights-list li { padding: 4px 0; padding-left: 18px; position: relative; }
+    .insights-list li::before { content: "→"; position: absolute; left: 0; color: #2563eb; font-weight: 700; }
+
+    /* Color-coded callouts (Enhanced) */
+    .callout-tip {
+      font-size: 12px;
+      padding: 10px 12px;
+      background: #fffbeb;
+      border-left: 4px solid #d97706;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      margin-top: 8px;
+    }
+    .callout-info {
+      font-size: 12px;
+      padding: 10px 12px;
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      margin-top: 8px;
+    }
+    .callout-success {
+      font-size: 12px;
+      padding: 10px 12px;
+      background: #ecfdf5;
+      border-left: 4px solid #059669;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    /* Preview view (Hybrid – rendered form) */
+    .panel-preview-content {
+      display: none;
+      margin-top: 0;
+      padding: 12px 0;
+    }
+    .panel.view-preview .panel-form-content,
+    .panel.view-preview .panel-structure-content,
+    .panel.view-preview .panel-json-content { display: none; }
+    .panel.view-preview .panel-preview-content { display: block; }
+    .preview-form {
+      max-width: 100%;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .preview-form h2 { font-size: 18px; font-weight: 700; margin: 0 0 16px 0; color: var(--text); }
+    .preview-form .preview-section { margin-bottom: 20px; }
+    .preview-form .preview-section-title { font-size: 13px; font-weight: 600; margin: 0 0 10px 0; color: var(--text); }
+    .preview-form .field-row { margin-bottom: 12px; }
+    .preview-form label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; color: var(--text); }
+    .preview-form label .required { color: var(--required); }
+    .preview-form input[type="text"],
+    .preview-form input[type="email"],
+    .preview-form input[type="tel"],
+    .preview-form input[type="date"],
+    .preview-form select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 14px;
+      background: #fff;
+    }
+    .preview-form .consent-row { margin: 16px 0; }
+    .preview-form .consent-row label { font-weight: normal; }
+    .preview-form .submit-btn {
+      margin-top: 16px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      background: var(--aem-purple);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .preview-form .submit-btn:hover { background: var(--aem-purple-hover); }
+    .panel-json-pre {
+      margin: 0;
+      padding: 12px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      line-height: 1.5;
+      overflow: auto;
+      max-height: 70vh;
+      font-family: ui-monospace, monospace;
+      white-space: pre;
+    }
+    .panel-json-pre code { color: inherit; }
+
+    .progress-wrap {
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--panel-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .progress-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .progress-bar {
+      height: 6px;
+      background: #e5e5e5;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--aem-purple);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .progress-text { font-size: 12px; color: var(--text-muted); }
+
+    /* Thank you: larger message text, smaller "Suggested", AI icon next to heading */
+    .thankyou-config {
+      font-size: 14px;
+      margin-top: 8px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .consent-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .consent-heading .step-title { margin: 0; }
+    .thankyou-config .thankyou-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .thankyou-config .thankyou-heading h4 { font-size: 12px; font-weight: 600; color: var(--text); margin: 0; }
+    .thankyou-ai-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .thankyou-ai-icon:hover { background: var(--aem-purple-light); color: var(--aem-purple); }
+    .thankyou-ai-icon svg { width: 14px; height: 14px; }
+    .thankyou-default {
+      color: var(--text);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+    .thankyou-suggested-label { font-size: 11px; color: var(--text-muted); font-weight: normal; }
+
+    /* Submission: tiles, selectable, with recommendation */
+    .submission-section { margin-top: 10px; }
+    .submission-section h4 { font-size: 11px; font-weight: 600; color: var(--text); margin: 0 0 8px 0; }
+    .submission-tiles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .submission-tile {
+      padding: 10px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .submission-tile:hover { border-color: var(--aem-purple); background: var(--aem-purple-light); }
+    .submission-tile.selected { border-color: var(--aem-purple); background: var(--aem-purple-light); }
+    .submission-tile .tile-name { font-weight: 600; color: var(--text); }
+    .submission-tile .tile-desc { color: var(--text-muted); margin-top: 2px; font-size: 10px; }
+    .submission-tile .tile-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      color: #0d7d4d;
+      background: #e6f4ee;
+      padding: 2px 5px;
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+    .option-download { margin-top: 10px; font-size: 11px; }
+    .submission-destination-label { font-size: 11px; font-weight: 600; color: var(--text); margin: 0 0 8px 0; }
+    .submission-post-options { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .submission-post-options-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin: 0 0 6px 0; }
+    .enhance-section { margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: var(--radius); border: 1px solid var(--border); }
+    .enhance-section h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px 0; color: var(--text); }
+    .template-copy-use-for { font-size: 10px; color: var(--text-muted); margin-top: 2px; flex-basis: 100%; }
+    .opt-apply-btn { font-size: 10px; padding: 3px 8px; font-weight: 600; color: var(--aem-purple); background: var(--aem-purple-light); border: 1px solid transparent; border-radius: 4px; cursor: pointer; font-family: inherit; }
+    .opt-apply-btn:hover { background: var(--aem-purple); color: #fff; }
+    .plan-status-wrap { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .plan-status { font-size: 12px; color: var(--text-muted); margin: 0; }
+    .plan-status strong { color: var(--text); }
+
+    .optimization-section {
+      margin-top: 16px;
+      padding: 14px;
+      background: #f8f9fa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .optimization-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .optimization-section-title-wrap { display: inline-flex; align-items: center; gap: 4px; }
+    .optimization-section h3 {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+    }
+    .optimization-section.collapsible .optimization-section-header { cursor: pointer; user-select: none; }
+    .optimization-section.collapsible .optimization-section-header:hover { background: #f0f0f0; }
+    .optimization-section.collapsible .optimization-section-header .chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; margin-left: 8px; }
+    .optimization-section.collapsible.open .optimization-section-header .chevron { transform: rotate(180deg); }
+    .optimization-section.collapsible .optimization-section-body { display: none; }
+    .optimization-section.collapsible.open .optimization-section-body { display: block; }
+    .panel.view-detailed .optimization-section.collapsible .optimization-section-body { display: block; }
+    .panel.view-detailed .optimization-section.collapsible.open .optimization-section-header .chevron { transform: rotate(180deg); }
+    .optimization-apply button {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .optimization-apply button:hover { color: var(--aem-purple); background: var(--aem-purple-light); }
+    .optimization-apply button svg { width: 12px; height: 12px; }
+    .optimization-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .optimization-list li {
+      display: block;
+      padding: 10px 0 10px 12px;
+      margin-bottom: 2px;
+      border-left: 3px solid var(--border);
+    }
+    .optimization-list li:last-child { margin-bottom: 0; }
+    .optimization-list .opt-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .optimization-list .opt-icon {
+      display: inline-flex;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+    .optimization-list .opt-icon svg { vertical-align: middle; }
+    .optimization-list .opt-item-text { display: block; color: var(--text); }
+    .optimization-list .action { color: var(--aem-purple); font-weight: 500; margin-top: 4px; display: block; font-size: 11px; }
+    .optimization-list .opt-apply-btn { margin-left: 6px; vertical-align: middle; }
+    .optimization-list .opt-badge-tip { border-left-color: #d97706; }
+    .optimization-list .opt-badge-tip .opt-category { color: #b45309; }
+    .optimization-list .opt-badge-info { border-left-color: #2563eb; }
+    .optimization-list .opt-badge-info .opt-category { color: #1d4ed8; }
+    .optimization-list .opt-badge-structure { border-left-color: var(--aem-purple); }
+    .optimization-list .opt-badge-structure .opt-category { color: var(--aem-purple); }
+    .optimization-list .opt-badge-translation { border-left-color: #059669; }
+    .optimization-list .opt-badge-translation .opt-category { color: #047857; }
+    .optimization-list .opt-badge-consider { border-left-color: #d97706; }
+    .optimization-list .opt-badge-consider .opt-category { color: #b45309; }
+    .optimization-list .opt-badge-layout { border-left-color: #6366f1; }
+    .optimization-list .opt-badge-layout .opt-category { color: #4338ca; }
+
+    .tip {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 6px 8px;
+      background: #f0f4ff;
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      border-left: 3px solid var(--aem-purple);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-primary { background: var(--aem-purple); color: #fff; }
+    .btn-primary:hover { background: var(--aem-purple-hover); }
+    .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--panel-bg); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar"></aside>
+
+    <main class="center">
+      <div class="card">
+        <p class="muted">Plan created</p>
+        <p><strong>Subscription sign-up form with personal details</strong></p>
+        <p class="muted">Review the details in the panel → and share any adjustments before moving forward.</p>
+        <div class="buttons">
+          <button class="btn btn-secondary">Modify the plan</button>
+          <button class="btn btn-primary">Proceed with the plan as is</button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel view-compact" id="rightPanel">
+      <div class="panel-header">
+        <h1 class="panel-title">Subscription sign-up form with personal details</h1>
+        <p class="panel-subtitle">Review structure, fields, and options before you build.</p>
+        <div class="panel-version" title="Plan version">
+          <select id="planVersion" aria-label="Plan version">
+            <option value="v1">Version 1 (current)</option>
+            <option value="v2">Version 2 (fewer required)</option>
+            <option value="v3">Version 3 (optimized)</option>
+          </select>
+          <span class="version-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v14h8V2H8z"/><path d="M12 6v12h8V6h-8z"/></svg></span>
+        </div>
+        <span class="panel-badge">Plan – Ready to begin</span>
+        <div class="panel-metrics">
+          <div class="panel-metric"><div class="value">~3 min</div><div class="label">Est. filling time</div></div>
+          <div class="panel-metric"><div class="value">~24%</div><div class="label">Est. conversion rate</div></div>
+        </div>
+        <p class="panel-summary">8 fields · 4 sections · Frescopa theme</p>
+        <div class="panel-context" id="panelContext">
+          <div class="panel-context-header">Context <span class="chevron">▼</span></div>
+          <div class="panel-context-body">
+            <div class="intent-source" id="intentSource">
+              <div class="intent-source-header">Intent source <span class="chevron">▼</span></div>
+              <div class="intent-source-body">
+                <div class="row"><span class="label">Original prompt:</span> "Create a subscription form for coffee with name, email, phone, address, and delivery preferences"</div>
+                <div class="row"><span class="label">Interpreted as:</span> Subscription sign-up form with personal details (contact info) and subscription preferences (coffee type, frequency).</div>
+              </div>
+            </div>
+            <div class="panel-goal-card">
+              <div class="card-label">Goal</div>
+              <div class="panel-goal-audience">
+                <strong>Goal:</strong> Add a subscription sign-up form with personal details so visitors can subscribe and submit their personal and subscription preferences.
+                <span class="audience">Audience: New and returning visitors signing up for coffee subscription; B2C, multi-region.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="view-toggle">
+          <button type="button" class="active" data-view="compact" title="Compact view: sections and fields only">Compact</button>
+          <button type="button" data-view="detailed" title="Detailed view: full field details and actions">Detailed</button>
+          <button type="button" data-view="preview" title="Preview the form as visitors will see it">Preview</button>
+          <button type="button" data-view="json" title="View form structure as JSON">JSON</button>
+        </div>
+        </div>
+
+      <div class="panel-preview-content" id="panelPreviewContent" aria-hidden="true">
+        <div class="preview-form" id="previewForm">
+          <h2>Subscription sign-up form with personal details</h2>
+          <div class="preview-section">
+            <div class="preview-section-title">Personal information</div>
+            <div class="field-row">
+              <label>First name <span class="required">*</span></label>
+              <input type="text" placeholder="e.g. John" />
+            </div>
+            <div class="field-row">
+              <label>Last name</label>
+              <input type="text" placeholder="e.g. Doe" />
+            </div>
+            <div class="field-row">
+              <label>Date of birth</label>
+              <input type="date" placeholder="MM/DD/YYYY" />
+            </div>
+            <div class="field-row">
+              <label>Email address <span class="required">*</span></label>
+              <input type="email" placeholder="you@example.com" />
+            </div>
+            <div class="field-row">
+              <label>Phone number</label>
+              <input type="tel" placeholder="+1 (555) 000-0000" />
+            </div>
+            <div class="field-row">
+              <label>Address</label>
+              <input type="text" placeholder="Street address" />
+            </div>
+          </div>
+          <div class="preview-section">
+            <div class="preview-section-title">Subscription details</div>
+            <div class="field-row">
+              <label>Start date</label>
+              <input type="date" />
+            </div>
+            <div class="field-row">
+              <label>Preferred coffee type</label>
+              <select><option>Whole Bean</option><option>Ground</option><option>Pods</option><option>Single-origin</option></select>
+            </div>
+            <div class="field-row">
+              <label>Delivery frequency</label>
+              <select><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option></select>
+            </div>
+          </div>
+          <div class="consent-row">
+            <label><input type="checkbox" /> I agree to MyBarista terms and privacy policy <span class="required">*</span></label>
+          </div>
+          <button type="button" class="submit-btn">Submit</button>
+        </div>
+      </div>
+
+      <div class="panel-json-content" id="panelJsonContent" aria-hidden="true">
+        <pre class="panel-json-pre"><code id="formHeadlessJson"></code></pre>
+      </div>
+
+      <div class="panel-form-content" id="panelFormContent">
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">1</span>Form setup <span class="section-meta"><span class="field-count">—</span></span><button type="button" class="btn-section-refine" title="Refine section" aria-label="Refine section"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button></span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="section-purpose-block" data-purpose-block>
+            <div class="section-purpose-header" title="Purpose & details"><span class="section-purpose-header-left"><span class="section-purpose-info-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span><span class="section-purpose-label">Purpose</span></span><span class="chevron">▼</span></div>
+            <div class="section-purpose-body">
+              <div class="row"><span class="label">Purpose:</span> Base form layout and Frescopa theme.</div>
+              <div class="row"><span class="label">Change impact:</span> Affects form rendering.</div>
+            </div>
+          </div>
+          <div class="section-fields-block">
+            <div class="step-title">Form setup</div>
+            <div class="step-desc" style="margin-top: 2px;">Generate form with Frescopa theme and default template. Base form layout and styling.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">2</span>Personal information <span class="section-meta"><span class="field-count">6 fields</span></span><button type="button" class="btn-section-refine" title="Refine section" aria-label="Refine section"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button></span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="section-purpose-block" data-purpose-block>
+            <div class="section-purpose-header" title="Purpose & details"><span class="section-purpose-header-left"><span class="section-purpose-info-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span><span class="section-purpose-label">Purpose</span></span><span class="chevron">▼</span></div>
+            <div class="section-purpose-body">
+              <div class="row"><span class="label">Purpose:</span> Collect contact and identity info for application processing.</div>
+              <div class="row"><span class="label">Requiredness:</span> 2 required, 4 optional.</div>
+              <div class="row"><span class="label">Compliance:</span> DOB optional in EU. Data residency: EU optional fields may vary.</div>
+              <div class="row"><span class="label">Change impact:</span> Affects: email notification, CRM mapping.</div>
+            </div>
+          </div>
+          <div class="section-fields-block">
+            <div class="step-title-row">
+              <span class="step-title">Personal information</span>
+              <button type="button" class="btn-section-action" title="Add a new field to this section">Add field</button>
+            </div>
+            <ul class="field-list">
+                <li data-help="Help: Enter your given name. Example: John">
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V6h16v1M4 12h16M4 17h10"/></svg></span>
+                    <span class="field-name">First name <span class="field-required-star">*</span></span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-format">Format</span></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-suggestions" id="suggest-firstname">Use shorter placeholder. Add help text for non-Latin names.</div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Personal Info</div>
+                    <div class="row"><span class="label">Required rationale:</span> UX — needed for personalization</div>
+                    <div class="row"><span class="label">Validation:</span> Letters and spaces, 1–50 chars</div>
+                    <div class="row"><span class="label">Placeholder:</span> e.g. John</div>
+                    <div class="row"><span class="label">Example:</span> John</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (empty):</span> This field is required</div>
+                        <div class="row"><span class="label">Error (pattern):</span> Use letters and spaces only</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">ARIA:</span> aria-describedby="firstNameHelp"</div>
+                        <div class="row"><span class="label">Screen reader:</span> First name, required, letters and spaces.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> applicant.firstName (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"firstName": "John"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V6h16v1M4 12h16M4 17h10"/></svg></span>
+                    <span class="field-name">Last name</span>
+                    <span class="field-badges"><span class="badge-pii">PII</span></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Personal Info</div>
+                    <div class="row"><span class="label">Validation:</span> Letters and spaces, 1–50 chars</div>
+                    <div class="row"><span class="label">Placeholder:</span> e.g. Doe</div>
+                    <div class="row"><span class="label">Example:</span> Doe</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (empty):</span> —</div>
+                        <div class="row"><span class="label">Error (pattern):</span> Use letters and spaces only</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">ARIA:</span> aria-describedby="lastNameHelp"</div>
+                        <div class="row"><span class="label">Screen reader:</span> Last name, optional, letters and spaces.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> applicant.lastName (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"lastName": "Doe"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                    <span class="field-name">Date of birth</span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-confidential">Confidential</span><span class="badge-restricted">Restricted</span></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Personal Info</div>
+                    <div class="row"><span class="label">Required rationale:</span> Optional — age gate in some regions</div>
+                    <div class="row"><span class="label">Validation:</span> Valid date, age 13+</div>
+                    <div class="row"><span class="label">Placeholder:</span> MM/DD/YYYY</div>
+                    <div class="row"><span class="label">Example:</span> 1990-05-15</div>
+                    <div class="row"><span class="label">Default:</span> — (optional; restricted in some regions)</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (empty):</span> —</div>
+                        <div class="row"><span class="label">Error (invalid):</span> Enter a valid date (age 13+)</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">ARIA:</span> aria-describedby="dobHelp"</div>
+                        <div class="row"><span class="label">Screen reader:</span> Date of birth, optional, MM/DD/YYYY.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> applicant.dateOfBirth (date)</div>
+                        <div class="row"><span class="label">Sample:</span> {"dateOfBirth": "1990-05-15"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li data-help="Help: We'll send confirmation here. Example: you@example.com">
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg></span>
+                    <span class="field-name">Email address <span class="field-required-star">*</span></span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-confidential">Confidential</span><span class="badge-format">Format</span></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-suggestions">Consider adding email verification step.</div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Personal Info</div>
+                    <div class="row"><span class="label">Required rationale:</span> Legal — needed for confirmation</div>
+                    <div class="row"><span class="label">Validation:</span> RFC 5322 email</div>
+                    <div class="row"><span class="label">Placeholder:</span> you@example.com</div>
+                    <div class="row"><span class="label">Example:</span> john@example.com</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (empty):</span> This field is required</div>
+                        <div class="row"><span class="label">Error (pattern):</span> Enter a valid email address</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">ARIA:</span> aria-describedby="emailHelp"</div>
+                        <div class="row"><span class="label">Screen reader:</span> Email address, required, valid email.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> applicant.email (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"email": "john@example.com"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></span>
+                    <span class="field-name">Phone number</span>
+                    <span class="field-badges"><span class="badge-pii">PII</span><span class="badge-confidential">Confidential</span></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Personal Info</div>
+                    <div class="row"><span class="label">Validation:</span> E.164 or national format</div>
+                    <div class="row"><span class="label">Placeholder:</span> +1 (555) 000-0000</div>
+                    <div class="row"><span class="label">Example:</span> +15551234567</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (empty):</span> —</div>
+                        <div class="row"><span class="label">Error (pattern):</span> Enter a valid phone number</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">ARIA:</span> aria-describedby="phoneHelp"</div>
+                        <div class="row"><span class="label">Screen reader:</span> Phone number, optional.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> applicant.phone (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"phone": "+15551234567"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V6h16v1M4 12h16M4 17h10"/></svg></span>
+                    <span class="field-name">Address</span>
+                    <span class="field-badges"><span class="badge-fragment">Fragment</span></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Personal Info</div>
+                    <div class="row"><span class="label">Validation:</span> 1–100 chars</div>
+                    <div class="row"><span class="label">Placeholder:</span> Street address</div>
+                    <div class="row"><span class="label">Example:</span> 123 Main St</div>
+                    <div class="row"><span class="label">Default:</span> —</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (empty):</span> —</div>
+                        <div class="row"><span class="label">Error (pattern):</span> Enter a valid address</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">ARIA:</span> aria-describedby="addressHelp"</div>
+                        <div class="row"><span class="label">Screen reader:</span> Address, optional.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> applicant.address (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"address": "123 Main St"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+            </ul>
+            <div class="tip callout-tip">Only First name and Email are required here; other fields optional to reduce friction.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">3</span>Subscription details <span class="section-meta"><span class="field-count">3 fields</span></span><button type="button" class="btn-section-refine" title="Refine section" aria-label="Refine section"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button></span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="section-purpose-block" data-purpose-block>
+            <div class="section-purpose-header" title="Purpose & details"><span class="section-purpose-header-left"><span class="section-purpose-info-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span><span class="section-purpose-label">Purpose</span></span><span class="chevron">▼</span></div>
+            <div class="section-purpose-body">
+              <div class="row"><span class="label">Purpose:</span> Collect delivery preferences for subscription.</div>
+              <div class="row"><span class="label">Requiredness:</span> 0 required, 3 optional.</div>
+              <div class="row"><span class="label">Change impact:</span> Affects: fulfillment system.</div>
+            </div>
+          </div>
+          <div class="section-fields-block">
+            <div class="step-title-row">
+              <span class="step-title">Subscription details</span>
+              <button type="button" class="btn-section-action" title="Add new fields to this section">Add field</button>
+            </div>
+            <ul class="field-list">
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+                    <span class="field-name">Start date</span>
+                    <span class="field-badges"></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Subscription</div>
+                    <div class="row"><span class="label">Validation:</span> Today or future date</div>
+                    <div class="row"><span class="label">Placeholder:</span> MM/DD/YYYY</div>
+                    <div class="row"><span class="label">Example:</span> 2025-03-01</div>
+                    <div class="row"><span class="label">Default:</span> Today</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Error (past date):</span> Start date must be today or later</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Screen reader:</span> Start date, optional, date picker.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> subscription.startDate (date)</div>
+                        <div class="row"><span class="label">Sample:</span> {"startDate": "2025-03-01"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Dropdown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/><path d="M4 4h16v16H4z"/></svg></span>
+                    <span class="field-name">Preferred coffee type</span>
+                    <span class="field-badges"></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Subscription</div>
+                    <div class="row"><span class="label">Validation:</span> One of: Whole Bean, Ground, Pods, Single-origin</div>
+                    <div class="row"><span class="label">Placeholder:</span> Select type</div>
+                    <div class="row"><span class="label">Example:</span> Whole Bean</div>
+                    <div class="row"><span class="label">Default:</span> Whole Bean</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Options:</span> Whole Bean, Ground, Pods, Single-origin</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Screen reader:</span> Preferred coffee type, optional, dropdown.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> subscription.coffeeType (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"coffeeType": "Whole Bean"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div class="field-line-compact">
+                    <span class="field-icon" title="Dropdown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/><path d="M4 4h16v16H4z"/></svg></span>
+                    <span class="field-name">Delivery frequency</span>
+                    <span class="field-badges"></span>
+                    <span class="field-actions">
+                      <button type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button type="button" title="Duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                      <button type="button" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M10 11v6M14 11v6"/></svg></button>
+                      <button type="button" title="Move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg></button>
+                      <button type="button" class="btn-suggest" title="Suggest improvements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+                    </span>
+                  </div>
+                  <div class="field-detail-block">
+                    <div class="row"><span class="label">Role:</span> Subscription</div>
+                    <div class="row"><span class="label">Validation:</span> Weekly, Bi-weekly, Monthly</div>
+                    <div class="row"><span class="label">Placeholder:</span> How often?</div>
+                    <div class="row"><span class="label">Example:</span> Monthly</div>
+                    <div class="row"><span class="label">Default:</span> Monthly</div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Validation details <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Options:</span> Weekly, Bi-weekly, Monthly</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Accessibility <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Screen reader:</span> Delivery frequency, optional, dropdown.</div>
+                      </div>
+                    </div>
+                    <div class="field-detail-expand" data-expand>
+                      <div class="field-detail-expand-header">Backend <span class="chevron">▼</span></div>
+                      <div class="field-detail-expand-body">
+                        <div class="row"><span class="label">Target:</span> subscription.deliveryFrequency (string)</div>
+                        <div class="row"><span class="label">Sample:</span> {"deliveryFrequency": "Monthly"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+            </ul>
+            <div class="tip callout-tip">Optional fields here can reduce friction and improve completion — visitors can skip and still submit.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section open" data-section>
+        <div class="section-header">
+          <span class="section-header-inner"><span class="section-number">4</span>Legal & submit</span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="section-purpose-block" data-purpose-block>
+            <div class="section-purpose-header" title="Purpose & details"><span class="section-purpose-header-left"><span class="section-purpose-info-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span><span class="section-purpose-label">Purpose</span></span><span class="chevron">▼</span></div>
+            <div class="section-purpose-body">
+              <div class="row"><span class="label">Purpose:</span> Consent capture and submission configuration.</div>
+              <div class="row"><span class="label">Change impact:</span> Affects: consent logging, submission endpoint.</div>
+            </div>
+          </div>
+          <div class="step">
+            <input type="checkbox" id="s4" data-step disabled tabindex="-1" aria-label="Consent step (read-only)" />
+            <div class="step-content">
+              <div class="consent-heading">
+                <div class="step-title">Consent checkbox <span class="field-required-star">*</span></div>
+                <button type="button" class="thankyou-ai-icon" title="Edit consent text" aria-label="Edit consent text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+              </div>
+              <div class="step-desc">"I agree to MyBarista terms and privacy policy".</div>
+            </div>
+          </div>
+          <div class="thankyou-config">
+            <div class="thankyou-heading">
+              <h4>Thank you message</h4>
+              <button type="button" class="thankyou-ai-icon" title="Edit message" aria-label="Edit message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg></button>
+            </div>
+            <div class="thankyou-default">
+              <span class="thankyou-suggested-label">Suggested: </span>"Thanks for subscribing! We've sent a confirmation to your email. You'll receive your first delivery as per your chosen frequency."
+            </div>
+          </div>
+          <div class="submission-section">
+            <h4>Submission</h4>
+            <div class="submission-destination-label">Where to send data</div>
+            <div class="submission-tiles">
+              <button type="button" class="submission-tile selected" data-tile="adobe">
+                <span class="tile-name">Adobe Campaign / Journey</span>
+                <span class="tile-desc">Native integration for AEM</span>
+                <span class="tile-badge">Recommended</span>
+              </button>
+              <button type="button" class="submission-tile" data-tile="salesforce">
+                <span class="tile-name">Salesforce Marketing Cloud</span>
+                <span class="tile-desc">CRM & marketing automation</span>
+              </button>
+              <button type="button" class="submission-tile" data-tile="rest">
+                <span class="tile-name">REST API / webhook</span>
+                <span class="tile-desc">Custom backend</span>
+              </button>
+              <button type="button" class="submission-tile" data-tile="marketo">
+                <span class="tile-name">Marketo / HubSpot</span>
+                <span class="tile-desc">Lead gen & nurture</span>
+              </button>
+            </div>
+            <div class="submission-post-options">
+              <div class="submission-post-options-label">Post-submit options</div>
+              <div class="option-download"><label><input type="checkbox" checked /> Allow user to download submitted form (e.g. PDF copy)</label></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="optimization-section optimization-merged collapsible" data-optimization id="optimizationSection">
+        <div class="optimization-section-header">
+          <span class="optimization-section-title-wrap"><h3>Optimization opportunities</h3><span class="chevron">▼</span></span>
+          <div class="optimization-apply">
+            <button type="button" title="Apply all optimization suggestions to the plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg> Apply all</button>
+          </div>
+        </div>
+        <div class="optimization-section-body">
+        <ul class="optimization-list">
+          <li class="opt-badge-tip"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17h8v-2.3c1.8-1.3 3-3.3 3-5.7 0-3.9-3.1-7-7-7z"/></svg></span>Pro tip</span><span class="opt-item-text"><strong>Optional fields</strong> — Consider making Phone optional to reduce friction. <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+          <li class="opt-badge-info"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span>Helper</span><span class="opt-item-text"><strong>Field helpers</strong> — Add a short helper under "Preferred coffee type" to improve completion. <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+          <li class="opt-badge-structure"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>Structure</span><span class="opt-item-text"><strong>Progressive disclosure</strong> — Show Address only when needed (e.g. after country). <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+          <li class="opt-badge-translation"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span>Translation</span><span class="opt-item-text"><strong>Automated translations</strong> — Add multi-language support to reach more visitors and improve conversion in regional markets. <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+          <li class="opt-badge-consider"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></span>Simplification</span><span class="opt-item-text"><strong>Many fields in one section</strong> — Personal information has 6 fields. Consider splitting into 2 steps or using progressive disclosure. <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+          <li class="opt-badge-layout"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Layout</span><span class="opt-item-text"><strong>Multiple sections</strong> — Consider a single-page flow with clear visual grouping. <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+          <li class="opt-badge-tip"><span class="opt-category"><span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17h8v-2.3c1.8-1.3 3-3.3 3-5.7 0-3.9-3.1-7-7-7z"/></svg></span>Pro tip</span><span class="opt-item-text"><strong>Required vs optional</strong> — Fewer required fields can lower friction. <button type="button" class="opt-apply-btn" title="Apply this suggestion to the plan">Apply</button></span></li>
+        </ul>
+        </div>
+      </div>
+
+      <div class="templates-section">
+        <h4>Suggested copy</h4>
+        <div class="template-copy-list">
+          <div class="template-copy-item">
+            <span class="template-label">Consent (short):</span>
+            <span class="template-text">I agree to the terms and privacy policy.</span>
+            <span class="template-copy-use-for">Use for consent checkbox</span>
+            <button type="button" class="btn-use-copy" title="Use this copy for the consent checkbox">Use</button>
+          </div>
+          <div class="template-copy-item">
+            <span class="template-label">Confirmation:</span>
+            <span class="template-text">Thanks! We've sent a confirmation to your email.</span>
+            <span class="template-copy-use-for">Use for thank-you message</span>
+            <button type="button" class="btn-use-copy" title="Use this copy for the thank-you message">Use</button>
+          </div>
+          <div class="template-copy-item">
+            <span class="template-label">Error (required):</span>
+            <span class="template-text">This field is required.</span>
+            <span class="template-copy-use-for">Use for required-field errors</span>
+            <button type="button" class="btn-use-copy" title="Use this copy for required field validation messages">Use</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="enhance-section">
+        <h4>Enhance form</h4>
+        <div class="additional-suggestions-buttons">
+          <button type="button" class="additional-suggestion-btn" title="Embed this form in a page">
+            <span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>
+            Embed in page
+          </button>
+          <button type="button" class="additional-suggestion-btn" title="Integrate with Adobe Journey Optimizer">
+            <span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M9 12l2 2 4-4"/></svg></span>
+            Integrate with AJO journey
+          </button>
+          <button type="button" class="additional-suggestion-btn" title="Enable data visualization and reporting">
+            <span class="opt-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 2 5-6"/></svg></span>
+            Enable Data Visualization
+          </button>
+        </div>
+      </div>
+
+      <div class="plan-status-wrap">
+        <p class="plan-status"><strong>Plan status:</strong> Ready to build</p>
+      </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      var panel = document.getElementById('rightPanel');
+      var toggleBtns = document.querySelectorAll('.view-toggle button');
+      var sections = document.querySelectorAll('[data-section]');
+      var tiles = document.querySelectorAll('.submission-tile');
+
+      var formHeadlessJson = {
+        "title": "Subscription sign-up form with personal details",
+        "theme": "frescopa",
+        "description": "Add a subscription sign-up form with personal details so visitors can subscribe and submit their personal and subscription preferences.",
+        "sections": [
+          {
+            "id": "personal-information",
+            "title": "Personal information",
+            "fields": [
+              { "name": "firstName", "label": "First name", "type": "string", "required": true, "placeholder": "e.g. John", "dataType": "PII" },
+              { "name": "lastName", "label": "Last name", "type": "string", "required": false, "placeholder": "e.g. Doe", "dataType": "PII" },
+              { "name": "dateOfBirth", "label": "Date of birth", "type": "date", "required": false, "placeholder": "MM/DD/YYYY", "dataType": "PII,Confidential,Restricted" },
+              { "name": "email", "label": "Email address", "type": "email", "required": true, "placeholder": "you@example.com", "dataType": "PII,Confidential" },
+              { "name": "phone", "label": "Phone number", "type": "tel", "required": false, "placeholder": "+1 (555) 000-0000", "dataType": "PII,Confidential" },
+              { "name": "address", "label": "Address", "type": "fragment", "required": false, "contentFragment": true }
+            ]
+          },
+          {
+            "id": "subscription-details",
+            "title": "Subscription details",
+            "fields": [
+              { "name": "startDate", "label": "Start date", "type": "date", "required": false, "default": "today" },
+              { "name": "coffeeType", "label": "Preferred coffee type", "type": "dropdown", "required": false, "options": ["Whole Bean", "Ground", "Pods", "Single-origin"], "default": "Whole Bean" },
+              { "name": "deliveryFrequency", "label": "Delivery frequency", "type": "dropdown", "required": false, "options": ["Weekly", "Bi-weekly", "Monthly"], "default": "Monthly" }
+            ]
+          }
+        ],
+        "consent": { "label": "I agree to MyBarista terms and privacy policy", "required": true },
+        "thankYouMessage": "Thanks for subscribing! We've sent a confirmation to your email. You'll receive your first delivery as per your chosen frequency.",
+        "submission": { "allowDownload": true }
+      };
+
+      var jsonEl = document.getElementById('formHeadlessJson');
+      if (jsonEl) jsonEl.textContent = JSON.stringify(formHeadlessJson, null, 2);
+
+      var panelFormContent = document.getElementById('panelFormContent');
+      var panelJsonContent = document.getElementById('panelJsonContent');
+
+      toggleBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var view = this.getAttribute('data-view');
+          toggleBtns.forEach(function (b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          panel.classList.remove('view-compact', 'view-detailed', 'view-json', 'view-preview');
+          panel.classList.add('view-' + view);
+          var isForm = view === 'compact' || view === 'detailed';
+          if (panelFormContent) panelFormContent.style.display = isForm ? '' : 'none';
+          if (panelJsonContent) {
+            panelJsonContent.style.display = view === 'json' ? 'block' : 'none';
+            panelJsonContent.setAttribute('aria-hidden', view !== 'json');
+          }
+          var optimizationSection = document.getElementById('optimizationSection');
+          if (optimizationSection) {
+            if (view === 'detailed') optimizationSection.classList.add('open');
+            else optimizationSection.classList.remove('open');
+          }
+          var panelPreviewContent = document.getElementById('panelPreviewContent');
+          if (panelPreviewContent) {
+            panelPreviewContent.style.display = view === 'preview' ? 'block' : 'none';
+            panelPreviewContent.setAttribute('aria-hidden', view !== 'preview');
+          }
+        });
+      });
+
+      var optimizationSection = document.getElementById('optimizationSection');
+      if (optimizationSection) {
+        var optHeader = optimizationSection.querySelector('.optimization-section-header');
+        if (optHeader) optHeader.addEventListener('click', function (e) {
+          if (e.target.closest('.optimization-apply')) return;
+          optimizationSection.classList.toggle('open');
+        });
+      }
+
+      var panelContext = document.getElementById('panelContext');
+      if (panelContext) {
+        panelContext.querySelector('.panel-context-header').addEventListener('click', function () { panelContext.classList.toggle('open'); });
+      }
+      var intentSource = document.getElementById('intentSource');
+      if (intentSource) {
+        intentSource.querySelector('.intent-source-header').addEventListener('click', function (e) { e.stopPropagation(); intentSource.classList.toggle('open'); });
+      }
+
+      document.querySelectorAll('[data-purpose-block]').forEach(function (block) {
+        var header = block.querySelector('.section-purpose-header');
+        if (header) header.addEventListener('click', function () { block.classList.toggle('open'); });
+      });
+
+      document.querySelectorAll('[data-expand]').forEach(function (el) {
+        var header = el.querySelector('.field-detail-expand-header');
+        if (header) header.addEventListener('click', function () { el.classList.toggle('open'); });
+      });
+
+      document.querySelectorAll('.btn-suggest').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var suggestions = this.closest('li').querySelector('.field-suggestions');
+          if (suggestions) suggestions.classList.toggle('visible');
+        });
+      });
+
+      sections.forEach(function (s) {
+        var header = s.querySelector('.section-header');
+        header.addEventListener('click', function (e) {
+          if (e.target.closest('.btn-section-refine') || e.target.closest('.section-header-actions')) return;
+          s.classList.toggle('open');
+        });
+      });
+
+      tiles.forEach(function (t) {
+        t.addEventListener('click', function () {
+          tiles.forEach(function (x) { x.classList.remove('selected'); });
+          this.classList.add('selected');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
